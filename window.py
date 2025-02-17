@@ -59,15 +59,120 @@ class Line:
         y2 = self.point_b.y
         canvas.create_line(x1, y1, x2, y2, fill = fill_color, width = 2)
         
+class Cell:
+    def __init__(self, top_left_point, bottom_right_point, window):
+        self.has_left_wall = True
+        self.has_right_wall = True
+        self.has_top_wall = True
+        self.has_bottom_wall = True
+        self.x1 = top_left_point.x
+        self.y1 = top_left_point.y
+        self.x2 = bottom_right_point.x
+        self.y2 = bottom_right_point.y
+        self.win = window
+
+    def draw(self, fill_color=None):
+        if fill_color is None:
+            fill_color = "black" # default if no color specified
+
+        if self.has_left_wall:
+            point_a = Point(self.x1, self.y1)
+            point_b = Point(self.x1, self.y2)
+            left_wall = Line(point_a, point_b)
+            left_wall.draw(self.win, fill_color)
+
+        if self.has_right_wall:
+            point_a = Point(self.x2, self.y1)
+            point_b = Point(self.x2, self.y2)
+            right_wall = Line(point_a, point_b)
+            right_wall.draw(self.win, fill_color)
+
+        if self.has_top_wall:
+            point_a = Point(self.x1, self.y1)
+            point_b = Point(self.x2, self.y1)
+            top_wall = Line(point_a, point_b)
+            top_wall.draw(self.win, fill_color)
+
+        if self.has_bottom_wall:
+            point_a = Point(self.x1, self.y2)
+            point_b = Point(self.x2, self.y2)
+            bottom_wall = Line(point_a, point_b)
+            bottom_wall.draw(self.win, fill_color)
+
+    def draw_move(self, to_cell, undo=False):
+        fill_color = "red"
+        if undo:
+            fill_color = "grey" # default if no color specified
+
+        point_1 = Point(((self.x1+self.x2)/2), ((self.y1 + self.y2)/2))
+        point_2 = Point(((to_cell.x1+to_cell.x2)/2), ((to_cell.y1 + to_cell.y2)/2))
+        move_line = Line(point_1, point_2)
+        move_line.draw(self.win, fill_color)
 
 
 def main():
     win = Window(800, 600)
+
     point1 = Point(10, 100)
     point2 = Point(50, 200)
     line = Line(point1, point2)
-    win.draw_line(line, "red")
+    color = "red"
+    win.draw_line(line, color)
 
+    cell_one = Cell(point1, point2, win.canvas)
+    cell_one.draw()
+
+    point1.x = 0
+    point1.y = 0
+    point2.x = 150
+    point2.y = 400
+
+    cell_two = Cell(point1, point2, win.canvas)
+    #cell_two.has_bottom_wall = False
+    #cell_two.has_top_wall = False
+    #cell_two.has_left_wall = False
+    #cell_two.has_right_wall= False
+
+    cell_two.draw()
+
+    cell_one.draw_move(cell_two)
+    cell_one.draw_move(cell_two, True)
+    
+    """
+    # Below is just a silly "animation", not in the assignment
+
+    a = 1
+    b = 200
+    c = 0
+    temp = 1
+    step = 1
+    while temp < 10:
+        print(f"a: {a}, b: {b}, step: {step}")
+        for i in range(a, b, step):
+            point1.x = i + 1
+            point1.y = 2*i + 1
+            point2.x = 2*i + 1
+            point2.y = i + 1
+            line = Line(point1, point2)
+            if i % 2 == 0:
+                color = "red"
+            else:
+                color = "black" 
+
+            win.draw_line(line, color)
+            win.root.update()  # Add this!
+            time.sleep(0.01)
+            win.canvas.delete("all")  # Clear for next frame
+            
+
+        a, b = b, a
+        step = step * -1
+        
+        
+        
+        temp += 1
+    """
+                        
     win.wait_for_close()
 
 
