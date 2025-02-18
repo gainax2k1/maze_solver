@@ -3,6 +3,9 @@ import time # part of optional pause in self.wait_for_close() loop
 
 class Window:
     def __init__(self, width, height):
+        if width <= 0 or height <= 0:
+            raise ValueError(f"Window parameters out of bounds: width={width}, height={height}")
+        
         self.width = width
         self.height = height
 
@@ -43,6 +46,9 @@ class Window:
 
 class Point:
     def __init__(self, x, y):
+        if x < 0 or y < 0:
+            raise ValueError(f"Point out of bounds: x={x}, y={y}")
+        
         self.x = x # x=0 left of screen  # public becauses not self.__x and self.__y
         self.y = y # y=0 top of screen
 
@@ -60,7 +66,7 @@ class Line:
         canvas.create_line(x1, y1, x2, y2, fill = fill_color, width = 2)
         
 class Cell:
-    def __init__(self, top_left_point, bottom_right_point, window):
+    def __init__(self, top_left_point, bottom_right_point, win = None):
         self.has_left_wall = True
         self.has_right_wall = True
         self.has_top_wall = True
@@ -69,9 +75,12 @@ class Cell:
         self.y1 = top_left_point.y
         self.x2 = bottom_right_point.x
         self.y2 = bottom_right_point.y
-        self.win = window
+        self.win = win
 
     def draw(self, fill_color=None):
+        if self.win is None:
+            return
+        
         if fill_color is None:
             fill_color = "black" # default if no color specified
 
@@ -110,7 +119,15 @@ class Cell:
         move_line.draw(self.win, fill_color)
 
 class Maze:
-    def __init__(self, x1, y1, num_rows, num_cols, cell_size_x, cell_size_y, win):
+    def __init__(self, x1, y1, num_rows, num_cols, cell_size_x, cell_size_y, win=None):
+        if x1 < 0 or y1 < 0:
+            raise ValueError(f"Maze offset out of bounds: x1={x1}, y1={y1}")
+        if num_rows <= 0 or num_cols <= 0:
+            raise ValueError(f"Maze dimensions out of bounds: num_rows={num_rows}, num_cols={num_cols}")
+        if cell_size_x <= 0 or cell_size_y <= 0:
+            raise ValueError(f"Maze cell sizes out of bounds: cell_size_x={cell_size_x}, cell_size_y={cell_size_y}")
+        
+        
         self.x1 = x1 # x1 and y1 here are offsets for the grid, shifting the top left starting point.
         self.y1 = y1
         self.num_rows = num_rows
@@ -156,7 +173,7 @@ class Maze:
 
 
 def main():
-    win = Window(420, 420)
+    #win = Window(420, 420)
     """
     point1 = Point(10, 100)
     point2 = Point(50, 200)
@@ -183,7 +200,7 @@ def main():
     cell_one.draw_move(cell_two)
     cell_one.draw_move(cell_two, True)
     """
-    my_maze = Maze(10, 10, 20, 20, 20, 20, win.canvas)
+    #my_maze = Maze(10, 10, 20, 20, 20, 20, win.canvas)
     
     
     """
@@ -221,7 +238,7 @@ def main():
         temp += 1
     """
                         
-    win.wait_for_close()
+    #win.wait_for_close()
 
 
 main()
