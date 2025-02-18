@@ -109,10 +109,55 @@ class Cell:
         move_line = Line(point_1, point_2)
         move_line.draw(self.win, fill_color)
 
+class Maze:
+    def __init__(self, x1, y1, num_rows, num_cols, cell_size_x, cell_size_y, win):
+        self.x1 = x1 # x1 and y1 here are offsets for the grid, shifting the top left starting point.
+        self.y1 = y1
+        self.num_rows = num_rows
+        self.num_cols = num_cols
+        self.cell_size_x = cell_size_x
+        self.cell_size_y = cell_size_y
+        self.win = win
+
+        self._create_cells()
+
+    def _create_cells(self):
+        # access with self._cells[col]prow]  (col is x, row is y)
+
+        self._cells = []
+
+        for col in range(self.num_cols):
+            column = [] # new list for this column
+
+            for row in range(self.num_rows): #self.x1 and y1 are the offsets x = cols, y = rows
+                new_cell_x1 = self.x1 + col * self.cell_size_x
+                new_cell_y1 = self.y1 + row * self.cell_size_y
+                new_cell_x2 = new_cell_x1 + self.cell_size_x
+                new_cell_y2 = new_cell_y1 + self.cell_size_y
+
+                new_point_1 = Point(new_cell_x1, new_cell_y1)
+                new_point_2 = Point(new_cell_x2, new_cell_y2)
+
+                new_cell = Cell(new_point_1, new_point_2, self.win)
+                new_cell.draw()
+                column.append(new_cell)
+
+            self._cells.append(column)
+        
+    def _draw_cell(self, i, j): # i, j are col, row (x, y) coordinates for the self_Cells matrix
+        self._cells[i][j].draw()
+        self._animate()
+
+    def _animate(self):
+        self.win.redraw()
+        time.sleep(0.05)
+
+
+
 
 def main():
-    win = Window(800, 600)
-
+    win = Window(420, 420)
+    """
     point1 = Point(10, 100)
     point2 = Point(50, 200)
     line = Line(point1, point2)
@@ -137,6 +182,9 @@ def main():
 
     cell_one.draw_move(cell_two)
     cell_one.draw_move(cell_two, True)
+    """
+    my_maze = Maze(10, 10, 20, 20, 20, 20, win.canvas)
+    
     
     """
     # Below is just a silly "animation", not in the assignment
