@@ -18,7 +18,7 @@ class Window:
 
         self.root.title("Maze Solver") 
 
-        bg_color = 'gray75' #arbitrary for now
+        bg_color = 'grey' #arbitrary for now
 
         self.canvas = Canvas(self.root, width=self.width, height=self.height, background=bg_color) 
 
@@ -84,6 +84,23 @@ class Cell:
         if fill_color is None:
             fill_color = "black" # default if no color specified
 
+        walls = {
+            "left": (self.x1, self.y1, self.x1, self.y2, self.has_left_wall),
+            "right": (self.x2, self.y1, self.x2, self.y2, self.has_right_wall),
+            "top": (self.x1, self.y1, self.x2, self.y1, self.has_top_wall),
+            "bottom": (self.x1, self.y2, self.x2, self.y2, self.has_bottom_wall),
+        }
+
+        for wall, (x1, y1, x2, y2, has_wall) in walls.items():
+            # Erase (or redraw with "grey") if wall is missing
+            color = "black" if has_wall else "grey"
+            point_a = Point(x1, y1)
+            point_b = Point(x2, y2)
+            wall_line = Line(point_a, point_b)
+            wall_line.draw(self.win, color)
+
+        """
+        # old implimentation
         if self.has_left_wall:
             point_a = Point(self.x1, self.y1)
             point_b = Point(self.x1, self.y2)
@@ -107,6 +124,7 @@ class Cell:
             point_b = Point(self.x2, self.y2)
             bottom_wall = Line(point_a, point_b)
             bottom_wall.draw(self.win, fill_color)
+        """
 
     def draw_move(self, to_cell, undo=False):
         fill_color = "red"
@@ -160,20 +178,26 @@ class Maze:
                 column.append(new_cell)
 
             self._cells.append(column)
+        self._break_entrance_and_exit()
         
     def _draw_cell(self, i, j): # i, j are col, row (x, y) coordinates for the self_Cells matrix
         self._cells[i][j].draw()
         self._animate()
 
     def _animate(self):
-        self.win.redraw()
+        self.win.update()
         time.sleep(0.05)
 
+    def _break_entrance_and_exit(self):
+        self._cells[0][0].has_top_wall = False
+        self._draw_cell(0, 0)
+        self._cells[self.num_cols - 1][self.num_rows-1].has_bottom_wall = False
+        self._draw_cell(self.num_cols-1, self.num_rows-1)
 
 
 
 def main():
-    #win = Window(420, 420)
+    win = Window(420, 420)
     """
     point1 = Point(10, 100)
     point2 = Point(50, 200)
@@ -200,7 +224,7 @@ def main():
     cell_one.draw_move(cell_two)
     cell_one.draw_move(cell_two, True)
     """
-    #my_maze = Maze(10, 10, 20, 20, 20, 20, win.canvas)
+    my_maze = Maze(10, 10, 20, 20, 20, 20, win.canvas)
     
     
     """
@@ -238,7 +262,7 @@ def main():
         temp += 1
     """
                         
-    #win.wait_for_close()
+    win.wait_for_close()
 
 
 main()
