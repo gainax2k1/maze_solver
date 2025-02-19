@@ -1,5 +1,6 @@
 from tkinter import Tk, BOTH, Canvas
 import time # part of optional pause in self.wait_for_close() loop
+import random
 
 class Window:
     def __init__(self, width, height):
@@ -76,6 +77,7 @@ class Cell:
         self.x2 = bottom_right_point.x
         self.y2 = bottom_right_point.y
         self.win = win
+        self.visited = False # tracking which cells have had walls broken
 
     def draw(self, fill_color=None):
         if self.win is None:
@@ -137,14 +139,13 @@ class Cell:
         move_line.draw(self.win, fill_color)
 
 class Maze:
-    def __init__(self, x1, y1, num_rows, num_cols, cell_size_x, cell_size_y, win=None):
+    def __init__(self, x1, y1, num_rows, num_cols, cell_size_x, cell_size_y, win=None, seed=None):
         if x1 < 0 or y1 < 0:
             raise ValueError(f"Maze offset out of bounds: x1={x1}, y1={y1}")
         if num_rows <= 0 or num_cols <= 0:
             raise ValueError(f"Maze dimensions out of bounds: num_rows={num_rows}, num_cols={num_cols}")
         if cell_size_x <= 0 or cell_size_y <= 0:
             raise ValueError(f"Maze cell sizes out of bounds: cell_size_x={cell_size_x}, cell_size_y={cell_size_y}")
-        
         
         self.x1 = x1 # x1 and y1 here are offsets for the grid, shifting the top left starting point.
         self.y1 = y1
@@ -153,6 +154,9 @@ class Maze:
         self.cell_size_x = cell_size_x
         self.cell_size_y = cell_size_y
         self.win = win
+        self.seed = 0  # default for testing purposes. maybe uneccessary?
+        if seed is not None:
+            self.seed = random.seed(seed)
 
         self._create_cells()
 
@@ -179,6 +183,8 @@ class Maze:
 
             self._cells.append(column)
         self._break_entrance_and_exit()
+        self._break_walls_r(0,0)
+        print("walls done breaking")
         
     def _draw_cell(self, i, j): # i, j are col, row (x, y) coordinates for the self_Cells matrix
         self._cells[i][j].draw()
@@ -186,13 +192,83 @@ class Maze:
 
     def _animate(self):
         self.win.update()
-        time.sleep(0.05)
+        #time.sleep(0.01)
 
     def _break_entrance_and_exit(self):
         self._cells[0][0].has_top_wall = False
         self._draw_cell(0, 0)
         self._cells[self.num_cols - 1][self.num_rows-1].has_bottom_wall = False
         self._draw_cell(self.num_cols-1, self.num_rows-1)
+
+    def _break_walls_r(self, i, j): # recursive depth first traversal
+        self._cells[i][j].visited = True
+
+        direction = ["up", "down", "left", "right"]
+
+        # checking self._cells for adjacent valid and unvisited cells
+        while True:
+            to_visit = [] #holds cells to be visited
+
+            # up
+        
+            if (i >=0 and j >=1) and not self._cells[i][j-1].visited:
+                to_visit_tuple = (i, j-1, "up")
+                to_visit.append(to_visit_tuple)
+            
+            # down
+            if (i < self.num_cols and j+1 < self.num_rows) and not self._cells[i][j+1].visited:
+                to_visit_tuple = (i, j+1, "down")
+                to_visit.append(to_visit_tuple)
+            
+            # left
+            if (i >= 1 and j >=0) and not self._cells[i-1][j].visited:
+                to_visit_tuple = (i-1, j, "left")
+                to_visit.append(to_visit_tuple)
+
+            # right
+            if ( i+1 < self.num_cols and j < self.num_rows) and not self._cells[i+1][j].visited:
+                to_visit_tuple = (i+1, j, "right")
+                to_visit.append(to_visit_tuple)
+
+            if len(to_visit) == 0:
+                self._draw_cell(i, j)
+                return
+                
+            
+            random_neighbor_to_visit = random.choice(to_visit)
+            next_i, next_j, direction = random_neighbor_to_visit
+
+            match direction:
+
+                case "up":
+                    self._cells[i][j].has_top_wall = False
+                    self._cells[next_i][next_j].has_bottom_wall = False
+                    
+                case "down":
+                    self._cells[i][j].has_bottom_wall = False
+                    self._cells[next_i][next_j].has_top_wall = False
+                case "left":
+                    self._cells[i][j].has_left_wall = False
+                    self._cells[next_i][next_j].has_right_wall = False
+                case "right":
+                    self._cells[i][j].has_right_wall = False
+                    self._cells[next_i][next_j].has_left_wall = False
+            
+            self._draw_cell(i, j)
+        
+            self._break_walls_r(next_i, next_j)
+ 
+            
+             
+
+
+
+
+            
+
+
+
+
 
 
 
